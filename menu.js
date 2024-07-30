@@ -96,3 +96,8 @@ function createDropdownMenu(config) {
     }
   });
 }
+
+createDropdownMenu({
+      containerId: 'dropdown-container',
+      buttonLabel: 'Select a Site' // Optional: customize the button label
+    });
