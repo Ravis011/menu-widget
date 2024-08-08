@@ -15,8 +15,8 @@ function createDropdownMenu(config) {
 
     .toggle {
       position: relative;
-      width: 40px;
-      height: 40px;
+      width: 35px;
+      height: 37px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
@@ -24,6 +24,10 @@ function createDropdownMenu(config) {
       justify-content: center;
       gap: 10px;
       transition-duration: .5s;
+    }
+
+    .toggle:hover {
+      transform:scale(1.14);
     }
 
     .bars {
@@ -78,8 +82,8 @@ function createDropdownMenu(config) {
       align-items: center;
       position: fixed;
       border-radius: 0 16px 16px 16px;
-      left: 0;
-      top: 40px;  /* Adjusted to place below the toggle button */
+      left: 18px;
+      top: 70px;  /* Adjusted to place below the toggle button */
       width: fit-content;
       overflow: hidden;  
       opacity: 0;
@@ -89,11 +93,12 @@ function createDropdownMenu(config) {
       z-index: 1;
       pointer-events: none;
       list-style: none;
+      background-color: #f9f9f9;
     }
 
     #checkbox:checked ~ .dropdown-content {
       display: flex;
-      opacity: 1;
+      opacity: 0.75;
       visibility: visible;
       transform: translateY(0);
       pointer-events: auto;
@@ -146,8 +151,8 @@ function createDropdownMenu(config) {
     /* Positioning the toggle button at the top-left corner */
     #${config.containerId} {
       position: fixed;
-      top: 10px;
-      left: 10px;
+      top: 25px;
+      left: 22px;
       z-index: 999;
     }
   `;
@@ -227,11 +232,47 @@ function createDropdownMenu(config) {
   });
 
   // Function to add more dropdown items
-  function addDropdownItems(newItems) {
-    // Update the menu data
-    dropdownMenuData.push(...newItems);
-    // Re-render the menu items
-    renderMenuItems(dropdownMenuData);
+  function addDropdownItems(items) {
+    items.forEach(item => {
+      const link = document.createElement('a');
+      link.href = item.href;
+      link.target = '_blank';
+
+      // Create and append icon
+      if (item.icon) {
+        const icon = document.createElement('img');
+        icon.src = item.icon;
+        icon.alt = item.label;
+        icon.className = 'menu-icon';
+        link.appendChild(icon);
+      }
+
+      // Append label to the link
+      link.appendChild(document.createTextNode(item.label));
+      dropdownContent.appendChild(link);
+    });
+  }
+  // Function to add more dropdown items at top
+  function addDropdownItemsTop(items) {
+	items.reverse();
+    items.forEach(item => {
+      const link = document.createElement('a');
+      link.href = item.href;
+      link.target = '_blank';
+
+      // Create and append icon
+      if (item.icon) {
+        const icon = document.createElement('img');
+        icon.src = item.icon;
+        icon.alt = item.label;
+        icon.className = 'menu-icon';
+        link.appendChild(icon);
+      }
+
+      // Append label to the link
+      link.appendChild(document.createTextNode(item.label));
+      dropdownContent.insertBefore(link, dropdownContent.firstChild);
+    });
   }
 
   // Function to add any elements as dropdown items in reverse order
@@ -253,28 +294,19 @@ function createDropdownMenu(config) {
   // Expose functions for external use
   return {
     addDropdownItems,
+    addDropdownItemsTop,
     addElementsAsDropdownItems
   };
 }
-
 // Automatically create the container and initialize the menu
-(function() {
   const container = document.createElement('div');
   container.id = 'menuContainer';
   document.body.appendChild(container);
 
-  // Initialize the dropdown menu
+// Initialize the dropdown menu
   const menu = createDropdownMenu({
     containerId: 'menuContainer'
   });
-
-  // Example: Add more dropdown items after initialization
-  menu.addDropdownItems([
-    { href: 'https://www.linkedin.com', label: 'LinkedIn', icon: 'https://example.com/icons/linkedin.png' },
-    { href: 'https://www.github.com', label: 'GitHub', icon: 'https://example.com/icons/github.png' }
-  ]);
-
-  // Example: Add any elements as dropdown items
+// Example: Add any elements as dropdown items
   const elements = document.querySelectorAll('.dropdown-item');
   menu.addElementsAsDropdownItems(elements);
-})();
