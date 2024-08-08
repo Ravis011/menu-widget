@@ -9,40 +9,146 @@ function createDropdownMenu(config) {
   // Add CSS styles dynamically
   const style = document.createElement('style');
   style.innerHTML = `
-    .dropdown-button {
-      padding: 10px;
-      background-color: #333;
-      color: white;
-      border: none;
+    #checkbox {
+      display: none;
+    }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 40px;
       cursor: pointer;
-      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 10px;
+      transition-duration: .5s;
+    }
+
+    .bars {
+      width: 100%;
+      height: 4px;
+      background-color: rgb(92, 130, 255);
+      border-radius: 4px;
+    }
+
+    #bar2 {
+      transition-duration: .8s;
+    }
+
+    #bar1 {
+      width: 50%;
+    }
+
+    #bar2 {
+      width: 75%;
+    }
+
+    #checkbox:checked + .toggle .bars {
+      position: absolute;
+      transition-duration: .5s;
+    }
+
+    #checkbox:checked + .toggle #bar2 {
+      transform: scaleX(0);
+      transition-duration: .1s;
+    }
+
+    #checkbox:checked + .toggle #bar1 {
+      width: 100%;
+      transform: rotate(45deg);
+      transition-duration: .5s;
+    }
+
+    #checkbox:checked + .toggle #bar3 {
+      width: 100%;
+      transform: rotate(-45deg);
+      transition-duration: .5s;
+    }
+
+    #checkbox:checked + .toggle {
+      transition-duration: .5s;
+      transform: rotate(180deg);
     }
 
     .dropdown-content {
       display: none;
-      position: absolute;
-      background-color: #f9f9f9;
-      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      flex-direction: column;
+      align-items: center;
+      position: fixed;
+      border-radius: 0 16px 16px 16px;
+      left: 0;
+      top: 40px;  /* Adjusted to place below the toggle button */
+      width: fit-content;
+      overflow: hidden;  
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-12px);
+      transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
       z-index: 1;
-      min-width: 160px;
+      pointer-events: none;
+      list-style: none;
     }
 
-    .dropdown-content a {
+    #checkbox:checked ~ .dropdown-content {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+      border-color: #0a3cff;
+    }
+
+    .dropdown-content a, .dropdown-content .dropdown-item {
       color: black;
-      padding: 12px 16px;
+      padding: 12px 24px;
       text-decoration: none;
       display: flex;
       align-items: center;
+      justify-content: center;
+      transition: color 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+      width: 100%;
+      position: relative;
+      text-align: center;
+      overflow: hidden;
     }
 
-    .dropdown-content a:hover {
-      background-color: #ddd;
+    .dropdown-content a::before, .dropdown-content .dropdown-item::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #0a3cff;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: -1;
+    }
+
+    .dropdown-content a:hover::before, .dropdown-content .dropdown-item:hover::before {
+      transform: scaleX(1);
+    }
+
+    .dropdown-content a:hover, .dropdown-content .dropdown-item:hover {
+      color: #ffffff;
     }
 
     .menu-icon {
       width: 20px;
       height: 20px;
       margin-right: 10px;
+      z-index: 1;
+    }
+
+    /* Positioning the toggle button at the top-left corner */
+    #${config.containerId} {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 999;
     }
   `;
   document.head.appendChild(style);
@@ -53,51 +159,122 @@ function createDropdownMenu(config) {
     return;
   }
 
-  // Create the dropdown button
-  const button = document.createElement('button');
-  button.textContent = config.buttonLabel || 'Menu';
-  button.className = 'dropdown-button';
+  // Create the menu button
+  const checkbox = document.createElement('input');
+  checkbox.id = 'checkbox';
+  checkbox.type = 'checkbox';
+
+  const label = document.createElement('label');
+  label.className = 'toggle';
+  label.htmlFor = 'checkbox';
+
+  const bar1 = document.createElement('div');
+  bar1.id = 'bar1';
+  bar1.className = 'bars';
+
+  const bar2 = document.createElement('div');
+  bar2.id = 'bar2';
+  bar2.className = 'bars';
+
+  const bar3 = document.createElement('div');
+  bar3.id = 'bar3';
+  bar3.className = 'bars';
+
+  label.appendChild(bar1);
+  label.appendChild(bar2);
+  label.appendChild(bar3);
 
   // Create the dropdown content container
   const dropdownContent = document.createElement('div');
   dropdownContent.className = 'dropdown-content';
 
-  // Add menu items from the dropdownMenuData array
-  dropdownMenuData.forEach(item => {
-    const link = document.createElement('a');
-    link.href = item.href;
-    link.target = '_blank';
+  // Function to render menu items
+  function renderMenuItems(items) {
+    dropdownContent.innerHTML = ''; // Clear existing items
+    items.forEach(item => {
+      const link = document.createElement('a');
+      link.href = item.href;
+      link.target = '_blank';
 
-    // Create and append icon
-    const icon = document.createElement('img');
-    icon.src = item.icon;
-    icon.alt = item.label;
-    icon.className = 'menu-icon';
+      // Create and append icon
+      if (item.icon) {
+        const icon = document.createElement('img');
+        icon.src = item.icon;
+        icon.alt = item.label;
+        icon.className = 'menu-icon';
+        link.appendChild(icon);
+      }
 
-    // Append icon and label to the link
-    link.appendChild(icon);
-    link.appendChild(document.createTextNode(item.label));
-    dropdownContent.appendChild(link);
-  });
+      // Append label to the link
+      link.appendChild(document.createTextNode(item.label));
+      dropdownContent.appendChild(link);
+    });
+  }
 
-  // Append button and dropdown content to the container
-  container.appendChild(button);
+  // Initial render of menu items
+  renderMenuItems(dropdownMenuData);
+
+  // Append checkbox, label, and dropdown content to the container
+  container.appendChild(checkbox);
+  container.appendChild(label);
   container.appendChild(dropdownContent);
-
-  // Toggle dropdown visibility on button click
-  button.addEventListener('click', () => {
-    dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
-  });
 
   // Close the dropdown if clicked outside
   window.addEventListener('click', (e) => {
-    if (!button.contains(e.target) && !dropdownContent.contains(e.target)) {
-      dropdownContent.style.display = 'none';
+    if (!container.contains(e.target)) {
+      checkbox.checked = false;
     }
   });
+
+  // Function to add more dropdown items
+  function addDropdownItems(newItems) {
+    // Update the menu data
+    dropdownMenuData.push(...newItems);
+    // Re-render the menu items
+    renderMenuItems(dropdownMenuData);
+  }
+
+  // Function to add any elements as dropdown items in reverse order
+  // while preserving their CSS, JavaScript properties, and functionality
+  function addElementsAsDropdownItems(elements) {
+    elements = Array.from(elements).reverse();
+    elements.forEach(element => {
+      const existingElement = document.getElementById(element.id);
+      if (existingElement) {
+        existingElement.remove();
+      }
+
+      // Move the element instead of cloning to preserve all properties and events
+      element.classList.add('dropdown-item');
+      dropdownContent.insertBefore(element, dropdownContent.firstChild);
+    });
+  }
+
+  // Expose functions for external use
+  return {
+    addDropdownItems,
+    addElementsAsDropdownItems
+  };
 }
 
-createDropdownMenu({
-      containerId: 'dropdown-container',
-      buttonLabel: 'Select a Site' // Optional: customize the button label
-    });
+// Automatically create the container and initialize the menu
+(function() {
+  const container = document.createElement('div');
+  container.id = 'menuContainer';
+  document.body.appendChild(container);
+
+  // Initialize the dropdown menu
+  const menu = createDropdownMenu({
+    containerId: 'menuContainer'
+  });
+
+  // Example: Add more dropdown items after initialization
+  menu.addDropdownItems([
+    { href: 'https://www.linkedin.com', label: 'LinkedIn', icon: 'https://example.com/icons/linkedin.png' },
+    { href: 'https://www.github.com', label: 'GitHub', icon: 'https://example.com/icons/github.png' }
+  ]);
+
+  // Example: Add any elements as dropdown items
+  const elements = document.querySelectorAll('.dropdown-item');
+  menu.addElementsAsDropdownItems(elements);
+})();
